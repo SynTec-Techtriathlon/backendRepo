@@ -1,4 +1,6 @@
+using Back;
 using Back.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,15 @@ builder.Services.AddSwaggerGen();
 
 //dependency injection
 builder.Services.AddScoped<IReportService, ReportService>();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+   // services.AddDbContext<ApplicationDbContext>(options =>
+ //       options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+});
+
+
 
 var app = builder.Build();
 

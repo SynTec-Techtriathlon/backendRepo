@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Back.Models;
+using Back.Services;
+using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,25 +10,28 @@ namespace Back.Controllers
     [ApiController]
     public class ReportController : ControllerBase
     {
-        // GET: api/<ReportController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly IReportService _reportService;
+        public ReportController(IReportService reportService)
         {
-            return new string[] { "value1", "value2" };
+            _reportService = reportService;
         }
 
-        // GET api/<ReportController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        // GET: api/<ReportController>
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            return "value";
+            var reports = await _reportService.GetValues();
+            return Ok(reports);
         }
+
 
         // POST api/<ReportController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task Post([FromBody] string value)
         {
+            await _reportService.AddValue(new ReportData { Name = value });
         }
+
 
         // PUT api/<ReportController>/5
         [HttpPut("{id}")]
