@@ -2,21 +2,6 @@
 
 This repository contains two main components: a Flutter-based mobile application (front-end) and an ASP.NET Core API (back-end). The front-end is located in the `frontend` folder, and the back-end is located in the `backend` folder.
 
-## Project Structure
-
-```bash
-.
-├── backend         # ASP.NET Core API
-│   ├── Controllers
-│   ├── Models
-│   ├── Services
-│   ├── Program.cs
-│   └── ...
-└── frontend        # Flutter mobile application
-    ├── lib
-    ├── assets
-    ├── pubspec.yaml
-    └── ...
 
 ## Prerequisites
 
