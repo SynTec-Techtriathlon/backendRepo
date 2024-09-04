@@ -8,8 +8,8 @@ namespace Back.Models
     {
         public required string Id { get; set; }
         public required string Country { get; set; }
-        public DateTime DateOfExpire { get; set; }
-        public DateTime DateOfIssue { get; set; }
+        public required DateTime DateOfExpire { get; set; }
+        public required DateTime DateOfIssue { get; set; }
 
         public required string ApplicantNIC {  get; set; }
         public required string ApplicantNationality { get; set; }

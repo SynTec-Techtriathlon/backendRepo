@@ -10,7 +10,7 @@ namespace Back.Models
         public required string SpouseNIC { get; set; }
 
         public required string Name { get; set; }
-        public string Address { get; set; }
+        public string? Address { get; set; }
 
         [ForeignKey("ApplicantNIC,ApplicantNationality")]
         public virtual Applicant Applicant { get; set; }

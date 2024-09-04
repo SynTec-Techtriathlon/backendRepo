@@ -8,9 +8,9 @@ namespace Back.Models
         [Key]
         public int Id { get; set; }
         public required string VisaType { get; set; }
-        public DateTime VisaIssuedDate { get; set; }
-        public int VisaValidityPeriod { get; set; }
-        public DateTime DateLeaving { get; set; }
+        public required DateTime VisaIssuedDate { get; set; }
+        public required int VisaValidityPeriod { get; set; }
+        public required DateTime DateLeaving { get; set; }
         public required string LastLocation { get; set; }
 
 

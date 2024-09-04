@@ -1,14 +1,9 @@
-﻿using static System.Net.Mime.MediaTypeNames;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-
-namespace Back.Models
+﻿namespace Back.Models.DTO
 {
-    public class Applicant
+    public class ApplicantDTO
     {
         public required string NIC { get; set; }
         public required string Nationality { get; set; }
-
         public required string FullName { get; set; }
         public required string Gender { get; set; }
         public required DateTime BirthDate { get; set; }
@@ -19,10 +14,5 @@ namespace Back.Models
         public string? Email { get; set; }
         public string? Occupation { get; set; }
         public string? OccupationAddress { get; set; }
-
-        public virtual Passport Passport { get; set; }
-        public virtual Spouse Spouse { get; set; }
-        public virtual ICollection<Application> Applications { get; set; }
-        public virtual ICollection<History> Histories { get; set; }
     }
 }
