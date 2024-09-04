@@ -16,7 +16,7 @@ namespace Back.Services
         }
         public async Task<ReportData> GetValue(int id)
         {
-            return await _context.ReportData.FirstOrDefaultAsync(x => x.Id == id);
+            return await _context.ReportData.FindAsync(id);
         }
         public async Task AddValue(ReportData reportData)
         {
@@ -30,9 +30,17 @@ namespace Back.Services
         }
         public async Task DeleteValue(int id)
         {
-            var reportData = await _context.ReportData.FirstOrDefaultAsync(x => x.Id == id);
-            _context.ReportData.Remove(reportData);
+            var obj = await _context.ReportData.FindAsync(id);
+            if (obj == null)
+            {
+                throw new InvalidOperationException("ReportData not found.");
+            }
+
+            _context.ReportData.Remove(obj);
             await _context.SaveChangesAsync();
         }
+
+
+
     }
 }

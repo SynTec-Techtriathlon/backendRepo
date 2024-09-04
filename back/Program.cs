@@ -17,8 +17,6 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-   // services.AddDbContext<ApplicationDbContext>(options =>
- //       options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 });
 
 

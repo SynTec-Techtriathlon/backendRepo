@@ -23,7 +23,12 @@ namespace Back.Controllers
             var reports = await _reportService.GetValues();
             return Ok(reports);
         }
-
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var report = await _reportService.GetValue(id);
+            return Ok(report);
+        }
 
         // POST api/<ReportController>
         [HttpPost]
@@ -35,14 +40,17 @@ namespace Back.Controllers
 
         // PUT api/<ReportController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task Put(int id, [FromBody] string value)
         {
+            await _reportService.UpdateValue(new ReportData { Id = id, Name = value });
         }
+
 
         // DELETE api/<ReportController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async void Delete(int id)
         {
+            await _reportService.DeleteValue(id);
         }
     }
 }
