@@ -14,6 +14,19 @@ builder.Services.AddSwaggerGen();
 //dependency injection
 builder.Services.AddScoped<IReportService, ReportService>();
 
+// Enable CORS for React.js
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactJSDomain", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
