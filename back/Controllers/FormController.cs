@@ -26,57 +26,55 @@ namespace Back.Controllers
                 .Include(a => a.Spouse)
                 .Include(a => a.Histories)
                 .ToListAsync();
+var formDTOs = applicants.Select(a => new FormDTO
+{
+    Applicant = new ApplicantDTO
+    {
+        NIC = a.NIC,
+        Nationality = a.Nationality,
+        FullName = a.FullName,
+        Gender = a.Gender,
+        BirthDate = a.BirthDate,
+        BirthPlace = a.BirthPlace,
+        Height = a.Height,
+        Address = a.Address,
+        TelNo = a.TelNo,
+        Email = a.Email,
+        Occupation = a.Occupation,
+        OccupationAddress = a.OccupationAddress
+    },
+    Application = a.Applications?.Select(ap => new ApplicationDTO
+    {
+        Purpose = ap.Purpose,
+        Route = ap.Route,
+        TravelMode = ap.TravelMode,
+        ArrivalDate = ap.ArrivalDate,
+        Period = ap.Period,
+        AmountOfMoney = ap.AmountOfMoney,
+        MoneyType = ap.MoneyType
+    }).FirstOrDefault(),
+    Passport = a.Passport != null ? new PassportDTO
+    {
+        Id = a.Passport.Id,
+        DateOfExpire = a.Passport.DateOfExpire,
+        DateOfIssue = a.Passport.DateOfIssue
+    } : null,
+    Spouse = a.Spouse != null ? new SpouseDTO
+    {
+        SpouseNIC = a.Spouse.SpouseNIC,
+        Name = a.Spouse.Name,
+        Address = a.Spouse.Address
+    } : null,
+    History = a.Histories?.Select(h => new HistoryDTO
+    {
+        VisaType = h.VisaType,
+        VisaIssuedDate = h.VisaIssuedDate,
+        VisaValidityPeriod = h.VisaValidityPeriod,
+        DateLeaving = h.DateLeaving,
+        LastLocation = h.LastLocation
+    }).ToList()
+}).ToList();
 
-            var formDTOs = applicants.Select(a => new FormDTO
-            {
-                Applicant = new ApplicantDTO
-                {
-                    NIC = a.NIC,
-                    Nationality = a.Nationality,
-                    FullName = a.FullName,
-                    Gender = a.Gender,
-                    BirthDate = a.BirthDate,
-                    BirthPlace = a.BirthPlace,
-                    Height = a.Height,
-                    Address = a.Address,
-                    TelNo = a.TelNo,
-                    Email = a.Email,
-                    Occupation = a.Occupation,
-                    OccupationAddress = a.OccupationAddress
-                },
-                Application = a.Applications.Select(ap => new ApplicationDTO
-                {
-                    Purpose = ap.Purpose,
-                    Route = ap.Route,
-                    TravelMode = ap.TravelMode,
-                    ArrivalDate = ap.ArrivalDate,
-                    Period = ap.Period,
-                    AmountOfMoney = ap.AmountOfMoney,
-                    MoneyType = ap.MoneyType
-
-                }).FirstOrDefault(), // Assuming one application per applicant; adjust if there are multiple
-                
-                Passport = new PassportDTO
-                {
-                    Id = a.Passport.Id,
-                    DateOfExpire = a.Passport.DateOfExpire,
-                    DateOfIssue = a.Passport.DateOfIssue
-                },
-                Spouse = a.Spouse != null ? new SpouseDTO
-                {
-                    SpouseNIC = a.Spouse.SpouseNIC,
-                    Name = a.Spouse.Name,
-                    Address = a.Spouse.Address
-                } : null,
-                History = a.Histories.Select(h => new HistoryDTO
-                {
-                    VisaType = h.VisaType,
-                    VisaIssuedDate = h.VisaIssuedDate,
-                    VisaValidityPeriod = h.VisaValidityPeriod,
-                    DateLeaving = h.DateLeaving,
-                    LastLocation = h.LastLocation
-                }).ToList()
-            }).ToList();
 
             return Ok(formDTOs);
         }
@@ -92,12 +90,60 @@ namespace Back.Controllers
             // Check if the applicant already exists
             var existingApplicant = await _context.Applicants
                 .Include(a => a.Applications)
+                .Include(a => a.Passport)
                 .FirstOrDefaultAsync(a => a.NIC == formDTO.Applicant.NIC && a.Nationality == formDTO.Applicant.Nationality);
 
             if (existingApplicant != null)
             {
                 return Conflict("An applicant with the given NIC and Nationality already exists.");
             }
+
+            // Create or find the existing Passport entity
+            var passport = await _context.Passports
+                .FirstOrDefaultAsync(p => p.Id == formDTO.Passport.Id && p.Country == formDTO.Applicant.Nationality);
+
+            if (passport == null)
+            {
+                passport = new Passport
+                {
+                    Id = formDTO.Passport.Id,
+                    Country = formDTO.Applicant.Nationality,
+                    DateOfExpire = formDTO.Passport.DateOfExpire,
+                    DateOfIssue = formDTO.Passport.DateOfIssue,
+                    ApplicantNIC = formDTO.Applicant.NIC,
+                    ApplicantNationality = formDTO.Applicant.Nationality,
+                };
+                _context.Passports.Add(passport);
+            }
+            else
+            {
+                // Update the existing passport if necessary
+                passport.DateOfExpire = formDTO.Passport.DateOfExpire;
+                passport.DateOfIssue = formDTO.Passport.DateOfIssue;
+                _context.Passports.Update(passport);
+            }
+
+            // Create the Spouse entity
+            var spouse = formDTO.Spouse != null ? new Spouse
+            {
+                ApplicantNIC = formDTO.Applicant.NIC,
+                ApplicantNationality = formDTO.Applicant.Nationality,
+                SpouseNIC = formDTO.Spouse.SpouseNIC,
+                Name = formDTO.Spouse.Name,
+                Address = formDTO.Spouse.Address,
+            } : null;
+
+            // Create the History entities
+            var histories = formDTO.History.Select(h => new History
+            {
+                VisaType = h.VisaType,
+                VisaIssuedDate = h.VisaIssuedDate,
+                VisaValidityPeriod = h.VisaValidityPeriod,
+                DateLeaving = h.DateLeaving,
+                LastLocation = h.LastLocation,
+                ApplicantNIC = formDTO.Applicant.NIC,
+                ApplicantNationality = formDTO.Applicant.Nationality,
+            }).ToList();
 
             // Create new Applicant entity
             var applicant = new Applicant
@@ -114,11 +160,9 @@ namespace Back.Controllers
                 Email = formDTO.Applicant.Email,
                 Occupation = formDTO.Applicant.Occupation,
                 OccupationAddress = formDTO.Applicant.OccupationAddress,
-                Applications = new List<Application>()
-            };
-
-            // Create new Application entity
-            var application = new Application
+                Applications = new List<Application>
+        {
+            new Application
             {
                 Purpose = formDTO.Application.Purpose,
                 Route = formDTO.Application.Route,
@@ -129,52 +173,19 @@ namespace Back.Controllers
                 MoneyType = formDTO.Application.MoneyType,
                 ApplicantNIC = formDTO.Applicant.NIC,
                 ApplicantNationality = formDTO.Applicant.Nationality,
+            }
+        },
+                Passport = passport,
+                Spouse = spouse,
+                Histories = histories
             };
 
-            // Create new Passport entity
-            var passport = new Passport
-            {
-                Id = formDTO.Passport.Id,
-                Country = formDTO.Applicant.Nationality,
-                DateOfExpire = formDTO.Passport.DateOfExpire,
-                DateOfIssue = formDTO.Passport.DateOfIssue,
-                ApplicantNIC = formDTO.Applicant.NIC,
-                ApplicantNationality = formDTO.Applicant.Nationality,
-            };
-
-            // Create new Spouse entity
-            var spouse = new Spouse
-            {
-                ApplicantNIC = formDTO.Applicant.NIC,
-                ApplicantNationality = formDTO.Applicant.Nationality,
-                SpouseNIC = formDTO.Spouse.SpouseNIC,
-                Name = formDTO.Spouse.Name,
-                Address = formDTO.Spouse.Address,
-            };
-
-            // Create new History entities and add them to the applicant
-            var histories = formDTO.History.Select(h => new History
-            {
-                VisaType = h.VisaType,
-                VisaIssuedDate = h.VisaIssuedDate,
-                VisaValidityPeriod = h.VisaValidityPeriod,
-                DateLeaving = h.DateLeaving,
-                LastLocation = h.LastLocation,
-                ApplicantNIC = formDTO.Applicant.NIC,
-                ApplicantNationality = formDTO.Applicant.Nationality,
-            }).ToList();
-
-            // Associate the related entities with the applicant
-            applicant.Applications.Add(application);
-            applicant.Passport = passport;
-            applicant.Spouse = spouse;
-            applicant.Histories = histories;
-
-            // Add the applicant (and the related entities) to the database
+            // Add the applicant to the database
             _context.Applicants.Add(applicant);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(CreateApplicant), new { id = applicant.NIC }, formDTO);
         }
+
     }
 }
