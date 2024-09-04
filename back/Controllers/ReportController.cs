@@ -48,9 +48,10 @@ namespace Back.Controllers
 
         // DELETE api/<ReportController>/5
         [HttpDelete("{id}")]
-        public async void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             await _reportService.DeleteValue(id);
+            return Ok();
         }
     }
 }

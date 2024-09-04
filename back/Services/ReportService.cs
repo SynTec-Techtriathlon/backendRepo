@@ -30,7 +30,7 @@ namespace Back.Services
         }
         public async Task DeleteValue(int id)
         {
-            var obj = await _context.ReportData.FindAsync(id);
+            var obj = await GetValue(id);
             if (obj == null)
             {
                 throw new InvalidOperationException("ReportData not found.");
