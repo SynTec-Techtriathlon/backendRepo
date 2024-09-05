@@ -46,7 +46,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
+app.UseCors("ReactJSDomain"); // Apply the CORS policy here
 app.UseAuthorization();
 
 app.MapControllers();
