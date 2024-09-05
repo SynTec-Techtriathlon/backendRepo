@@ -13,14 +13,14 @@ builder.Services.AddSwaggerGen();
 
 //dependency injection
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IInterpolService, InterpolServices>();
 
 // Enable CORS for React.js
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactJSDomain", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:3000 , https://interpol.api.bund.dev/")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -34,8 +34,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 
 
-var app = builder.Build();
+builder.Services.AddHttpClient();
+builder.Services.AddControllers();
 
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
