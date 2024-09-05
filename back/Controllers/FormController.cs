@@ -24,7 +24,11 @@ namespace Back.Controllers
             this.httpClient = httpClient;
             this.interpolService = interpolService;
         }
-
+        [HttpGet("trial")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllApplicantsTrial()
+        {
+            return await _context.Applications.ToListAsync();
+        }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetAllApplicants()
         {
@@ -157,7 +161,8 @@ namespace Back.Controllers
             }
             if(await interpolService.CheckUNNoticedApplicant(interpolObj) == "found")
             {
-                if(application.Status == "not found")
+                if(application.Status == "not found" +
+                    "")
                 {
                     application.Status = "UN";
                 }
