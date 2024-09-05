@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Asus\\Source\\Repos\\backendRepo\\back\\Back.csproj": {}
+    "C:\\Users\\Yasiru\\source\\repos\\mainRepo\\back\\Back.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Asus\\Source\\Repos\\backendRepo\\back\\Back.csproj": {
+    "C:\\Users\\Yasiru\\source\\repos\\mainRepo\\back\\Back.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Asus\\Source\\Repos\\backendRepo\\back\\Back.csproj",
+        "projectUniqueName": "C:\\Users\\Yasiru\\source\\repos\\mainRepo\\back\\Back.csproj",
         "projectName": "Back",
-        "projectPath": "C:\\Users\\Asus\\Source\\Repos\\backendRepo\\back\\Back.csproj",
-        "packagesPath": "C:\\Users\\Asus\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Asus\\Source\\Repos\\backendRepo\\back\\obj\\",
+        "projectPath": "C:\\Users\\Yasiru\\source\\repos\\mainRepo\\back\\Back.csproj",
+        "packagesPath": "C:\\Users\\Yasiru\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Yasiru\\source\\repos\\mainRepo\\back\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\Asus\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Yasiru\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -84,7 +88,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
