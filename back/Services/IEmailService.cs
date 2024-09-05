@@ -2,7 +2,7 @@
 {
     public interface IEmailService
     {
-        void RejectUserMail(string to, string fname, string lname);
-        void ApproveUserMail(string to, string fname, string lname);
+        void RejectUserMail(string to, string fullName);
+        void ApproveUserMail(string to, string fullName);
     }
 }
