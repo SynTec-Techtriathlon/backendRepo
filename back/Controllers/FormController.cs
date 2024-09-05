@@ -58,149 +58,157 @@ namespace Back.Controllers
                 return BadRequest("Invalid form data.");
             }
 
-            // Create or find the existing Passport entity
-            var passport = await _context.Passports
-                .FirstOrDefaultAsync(p => p.Id == formDTO.Passport.Id && p.Country == formDTO.Applicant.Nationality);
+            // Start a transaction to ensure atomic operations
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (passport == null)
+            try
             {
-                passport = new Passport
+                // Check if Passport already exists, if not create a new one
+                var passport = await _context.Passports
+                    .FirstOrDefaultAsync(p => p.Id == formDTO.Passport.Id && p.Country == formDTO.Applicant.Nationality);
+
+                if (passport == null)
                 {
-                    Id = formDTO.Passport.Id,
-                    Country = formDTO.Applicant.Nationality,
-                    DateOfExpire = formDTO.Passport.DateOfExpire,
-                    DateOfIssue = formDTO.Passport.DateOfIssue,
+                    if (string.IsNullOrEmpty(formDTO.Passport.Id))
+                    {
+                        return BadRequest("Passport Id is required."); // Validation for missing Id
+                    }
+
+                    passport = new Passport
+                    {
+                        Id = formDTO.Passport.Id, // Ensure Id is set
+                        Country = formDTO.Applicant.Nationality,
+                        DateOfExpire = formDTO.Passport.DateOfExpire,
+                        DateOfIssue = formDTO.Passport.DateOfIssue,
+                        ApplicantNIC = formDTO.Applicant.NIC,
+                        ApplicantNationality = formDTO.Applicant.Nationality,
+                    };
+                    _context.Passports.Add(passport);
+                }
+                else
+                {
+                    // Update the existing passport if necessary
+                    passport.DateOfExpire = formDTO.Passport.DateOfExpire;
+                    passport.DateOfIssue = formDTO.Passport.DateOfIssue;
+                    _context.Passports.Update(passport);
+                }
+
+
+                // Create Spouse entity if present
+                Spouse spouse = null;
+                if (formDTO.Spouse != null)
+                {
+                    spouse = new Spouse
+                    {
+                        ApplicantNIC = formDTO.Applicant.NIC,
+                        ApplicantNationality = formDTO.Applicant.Nationality,
+                        SpouseNIC = formDTO.Spouse.SpouseNIC,
+                        Name = formDTO.Spouse.Name,
+                        Address = formDTO.Spouse.Address,
+                    };
+                    _context.Spouses.Add(spouse);
+                }
+
+                // Create History entities
+                var histories = formDTO.History.Select(h => new History
+                {
+                    VisaType = h.VisaType,
+                    VisaIssuedDate = h.VisaIssuedDate,
+                    VisaValidityPeriod = h.VisaValidityPeriod,
+                    DateLeaving = h.DateLeaving,
+                    LastLocation = h.LastLocation,
                     ApplicantNIC = formDTO.Applicant.NIC,
                     ApplicantNationality = formDTO.Applicant.Nationality,
-                };
-                _context.Passports.Add(passport);
-            }
-            else
-            {
-                // Update the existing passport if necessary
-                passport.DateOfExpire = formDTO.Passport.DateOfExpire;
-                passport.DateOfIssue = formDTO.Passport.DateOfIssue;
-                _context.Passports.Update(passport);
-            }
-
-            // Create the Spouse entity
-            var spouse = formDTO.Spouse != null ? new Spouse
-            {
-                ApplicantNIC = formDTO.Applicant.NIC,
-                ApplicantNationality = formDTO.Applicant.Nationality,
-                SpouseNIC = formDTO.Spouse.SpouseNIC,
-                Name = formDTO.Spouse.Name,
-                Address = formDTO.Spouse.Address,
-            } : null;
-
-            // Create the History entities
-            var histories = formDTO.History.Select(h => new History
-            {
-                VisaType = h.VisaType,
-                VisaIssuedDate = h.VisaIssuedDate,
-                VisaValidityPeriod = h.VisaValidityPeriod,
-                DateLeaving = h.DateLeaving,
-                LastLocation = h.LastLocation,
-                ApplicantNIC = formDTO.Applicant.NIC,
-                ApplicantNationality = formDTO.Applicant.Nationality,
-            }).ToList();
-
-            // Create new Applicant entity
-            var applicant = new Applicant
-            {
-                NIC = formDTO.Applicant.NIC,
-                Nationality = formDTO.Applicant.Nationality,
-                FullName = formDTO.Applicant.FullName,
-                Gender = formDTO.Applicant.Gender,
-                BirthDate = formDTO.Applicant.BirthDate,
-                BirthPlace = formDTO.Applicant.BirthPlace,
-                Height = formDTO.Applicant.Height,
-                Address = formDTO.Applicant.Address,
-                TelNo = formDTO.Applicant.TelNo,
-                Email = formDTO.Applicant.Email,
-                Occupation = formDTO.Applicant.Occupation,
-                OccupationAddress = formDTO.Applicant.OccupationAddress,
-            };
-            var application = new Application
-            {
-                Purpose = formDTO.Application.Purpose,
-                Route = formDTO.Application.Route,
-                TravelMode = formDTO.Application.TravelMode,
-                ArrivalDate = formDTO.Application.ArrivalDate,
-                Period = formDTO.Application.Period,
-                AmountOfMoney = formDTO.Application.AmountOfMoney,
-                MoneyType = formDTO.Application.MoneyType,
-                ApplicantNIC = formDTO.Applicant.NIC,
-                ApplicantNationality = formDTO.Applicant.Nationality,
-            };
-
-
-            // Extract form data
-            string forename = formDTO.Applicant.FullName.Split(' ')[0];  // Assuming forename is the first part of FullName
-            string surname = formDTO.Applicant.FullName.Split(' ').Last(); // Assuming surname is the last part of FullName
-            string nationality = formDTO.Applicant.Nationality;
-            int ageMin = 18; // Default value, adjust as needed
-            int ageMax = 120; // Default value, adjust as needed
-            string gender = formDTO.Applicant.Gender == "Female" ? "F" : "M"; // Assuming "F" for Female and "M" for Male
-
-            InterpolDTO interpolObj = new InterpolDTO
-            {
-                forename = forename,
-                name = surname,
-                nationality = nationality,
-                gender = gender
-            };
-
-            if(await interpolService.CheckRedNoticedApplicant(interpolObj) == "found")
-            {
-               application.Status = "Red";
-            }
-            if(await interpolService.CheckYellowNoticedApplicant(interpolObj) == "found")
-            {
-                if(application.Status == "Red")
-                {
-                    application.Status = "Red, Yellow";
-                }
-                else
-                {
-                    application.Status = "Yellow";
-                }
-            }
-            if(await interpolService.CheckUNNoticedApplicant(interpolObj) == "found")
-            {
-                if(application.Status == "not found" +
-                    "")
-                {
-                    application.Status = "UN";
-                }
-                else
-                {
-                    application.Status = application.Status+", UN";
-                }
-            }
-            else if(await interpolService.CheckUNNoticedApplicant(interpolObj) == "not found" && 
-                    await interpolService.CheckYellowNoticedApplicant(interpolObj) == "not found" &&
-                    await interpolService.CheckRedNoticedApplicant(interpolObj) == "not found")
-            {
-                application.Status = "clear";
-            }
-            
-            
-            _context.Applicants.Add(applicant);
-            _context.Applications.Add(application);
-            if (spouse != null)
-            {
-                _context.Spouses.Add(spouse);
-            }
-            if (histories.Count > 0)
-            {
+                }).ToList();
                 _context.Histories.AddRange(histories);
+
+                // Create Applicant entity
+                var applicant = new Applicant
+                {
+                    NIC = formDTO.Applicant.NIC,
+                    Nationality = formDTO.Applicant.Nationality,
+                    FullName = formDTO.Applicant.FullName,
+                    Gender = formDTO.Applicant.Gender,
+                    BirthDate = formDTO.Applicant.BirthDate,
+                    BirthPlace = formDTO.Applicant.BirthPlace,
+                    Height = formDTO.Applicant.Height,
+                    Address = formDTO.Applicant.Address,
+                    TelNo = formDTO.Applicant.TelNo,
+                    Email = formDTO.Applicant.Email,
+                    Occupation = formDTO.Applicant.Occupation,
+                    OccupationAddress = formDTO.Applicant.OccupationAddress,
+                    Passport = passport,  // Set Passport relationship
+                    Spouse = spouse,      // Set Spouse relationship if exists
+                    Histories = histories // Set History relationship
+                };
+                _context.Applicants.Add(applicant);
+
+                // Create Application entity
+                var application = new Application
+                {
+                    Purpose = formDTO.Application.Purpose,
+                    Route = formDTO.Application.Route,
+                    TravelMode = formDTO.Application.TravelMode,
+                    ArrivalDate = formDTO.Application.ArrivalDate,
+                    Period = formDTO.Application.Period,
+                    AmountOfMoney = formDTO.Application.AmountOfMoney,
+                    MoneyType = formDTO.Application.MoneyType,
+                    ApplicantNIC = formDTO.Applicant.NIC,
+                    ApplicantNationality = formDTO.Applicant.Nationality,
+                    Applicant = applicant  // Set the Applicant relationship
+                };
+                _context.Applications.Add(application);
+
+                // Call external services for status updates
+                string forename = formDTO.Applicant.FullName.Split(' ')[0];
+                string surname = formDTO.Applicant.FullName.Split(' ').Last();
+                string nationality = formDTO.Applicant.Nationality;
+                string gender = formDTO.Applicant.Gender == "Female" ? "F" : "M";
+
+                InterpolDTO interpolObj = new InterpolDTO
+                {
+                    forename = forename,
+                    name = surname,
+                    nationality = nationality,
+                    gender = gender
+                };
+
+                // Check interpol status
+                if (await interpolService.CheckRedNoticedApplicant(interpolObj) == "found")
+                {
+                    application.Status = "Red";
+                }
+                if (await interpolService.CheckYellowNoticedApplicant(interpolObj) == "found")
+                {
+                    application.Status = application.Status == "Red" ? "Red, Yellow" : "Yellow";
+                }
+                if (await interpolService.CheckUNNoticedApplicant(interpolObj) == "found")
+                {
+                    application.Status = application.Status == "Red, Yellow" ? "Red, Yellow, UN" :
+                                         application.Status == "Red" ? "Red, UN" :
+                                         application.Status == "Yellow" ? "Yellow, UN" : "UN";
+                }
+                else if (application.Status == null)
+                {
+                    application.Status = "clear";
+                }
+
+                // Save all changes to the database
+                await _context.SaveChangesAsync();
+
+                // Commit the transaction
+                await transaction.CommitAsync();
+
+                return Ok(application.Status);
             }
-            _context.Passports.Add(passport);
-
-
-            return Ok(application.Status);
+            catch (Exception ex)
+            {
+                // Rollback the transaction in case of an error
+                await transaction.RollbackAsync();
+                return StatusCode(500, $"Error saving applicant: {ex.Message}");
+            }
         }
+
 
 
     }
