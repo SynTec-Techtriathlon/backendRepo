@@ -30,17 +30,24 @@ namespace Back.Controllers
             return await _context.Applications.ToListAsync();
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetAllApplicants()
+        public async Task<ActionResult<IEnumerable<Application>>> GetAllApplications()
         {
+            var applications = await _context.Applications
+        .Include(a => a.Applicant)
+            .ThenInclude(ap => ap.Passport)
+        .Include(a => a.Applicant)
+            .ThenInclude(ap => ap.Spouse)
+        .Include(a => a.Applicant)
+            .ThenInclude(ap => ap.Histories)
+        .ToListAsync();
 
-            return await _context.Applications
-             .Include(a => a.Applicant)
-                 .ThenInclude(ap => ap.Passport)
-             .Include(a => a.Applicant)
-                 .ThenInclude(ap => ap.Spouse)
-             .Include(a => a.Applicant)
-                 .ThenInclude(ap => ap.Histories)
-            .ToListAsync();
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                WriteIndented = true // Optional for more readable output
+            };
+
+            return new JsonResult(applications, options);
         }
         // POST: api/Applicant
         [HttpPost]
@@ -177,10 +184,22 @@ namespace Back.Controllers
             {
                 application.Status = "clear";
             }
+            
+            
+            _context.Applicants.Add(applicant);
+            _context.Applications.Add(application);
+            if (spouse != null)
+            {
+                _context.Spouses.Add(spouse);
+            }
+            if (histories.Count > 0)
+            {
+                _context.Histories.AddRange(histories);
+            }
+            _context.Passports.Add(passport);
+
 
             return Ok(application.Status);
-
-
         }
 
 
