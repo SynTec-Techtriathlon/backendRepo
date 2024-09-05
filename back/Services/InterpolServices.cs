@@ -174,8 +174,8 @@ namespace Back.Services
 
         public async Task<string> CheckUNNoticedApplicant(InterpolDTO value)
         {
-            string externalApiUrl = $"https://ws-public.interpol.int/notices/v1/yelolw?" +
- $"forename={value.forename}&name={value.name}&nationality={value.nationality}&" +
+            string externalApiUrl = $"https://ws-public.interpol.int/notices/v1/un?" +
+             $"forename={value.forename}&name={value.name}&nationality={value.nationality}&" +
              $"ageMax={120}&ageMin={18}&sexId={value.gender}&arrestWarrantCountryId={value.nationality}&" +
              $"page=1&resultPerPage=200";
 
