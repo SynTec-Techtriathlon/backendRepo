@@ -49,6 +49,35 @@ namespace Back.Controllers
 
             return new JsonResult(applications, options);
         }
+        //user get by number
+        [HttpGet("{no}")]
+        public async Task<ActionResult<Application>> GetApplicationById(int no)
+        {
+            // Fetch the application by the No field (ID)
+            var application = await _context.Applications
+                .Include(a => a.Applicant)
+                    .ThenInclude(ap => ap.Passport)
+                .Include(a => a.Applicant)
+                    .ThenInclude(ap => ap.Spouse)
+                .Include(a => a.Applicant)
+                    .ThenInclude(ap => ap.Histories)
+                .FirstOrDefaultAsync(a => a.No == no);
+
+            if (application == null)
+            {
+                return NotFound("Application not found.");
+            }
+
+            // Optional: serialize with custom options if needed
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                WriteIndented = true
+            };
+
+            return new JsonResult(application, options);
+        }
+
         // POST: api/Applicant
         [HttpPost]
         public async Task<IActionResult> CreateApplicant([FromBody] FormDTO formDTO)
@@ -132,6 +161,7 @@ namespace Back.Controllers
                 MoneyType = formDTO.Application.MoneyType,
                 ApplicantNIC = formDTO.Applicant.NIC,
                 ApplicantNationality = formDTO.Applicant.Nationality,
+                CreatedAt = DateTime.Now,
             };
 
 

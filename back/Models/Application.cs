@@ -21,5 +21,6 @@ namespace Back.Models
 
         [ForeignKey("ApplicantNIC,ApplicantNationality")]
         public virtual Applicant Applicant { get; set; }
+        public required DateTime CreatedAt { get; set; }
     }
 }
