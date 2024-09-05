@@ -2,7 +2,11 @@
 using Back.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text;
 using System.Threading.Tasks;
+using Back.Services;
 
 namespace Back.Controllers
 {
@@ -11,10 +15,14 @@ namespace Back.Controllers
     public class ApplicantController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly HttpClient httpClient;
+        private readonly IInterpolService interpolService;
 
-        public ApplicantController(ApplicationDbContext context)
+        public ApplicantController(ApplicationDbContext context, HttpClient httpClient, IInterpolService interpolService)
         {
             _context = context;
+            this.httpClient = httpClient;
+            this.interpolService = interpolService;
         }
 
         [HttpGet]
@@ -87,17 +95,6 @@ var formDTOs = applicants.Select(a => new FormDTO
                 return BadRequest("Invalid form data.");
             }
 
-            // Check if the applicant already exists
-            var existingApplicant = await _context.Applicants
-                .Include(a => a.Applications)
-                .Include(a => a.Passport)
-                .FirstOrDefaultAsync(a => a.NIC == formDTO.Applicant.NIC && a.Nationality == formDTO.Applicant.Nationality);
-
-            if (existingApplicant != null)
-            {
-                return Conflict("An applicant with the given NIC and Nationality already exists.");
-            }
-
             // Create or find the existing Passport entity
             var passport = await _context.Passports
                 .FirstOrDefaultAsync(p => p.Id == formDTO.Passport.Id && p.Country == formDTO.Applicant.Nationality);
@@ -160,9 +157,8 @@ var formDTOs = applicants.Select(a => new FormDTO
                 Email = formDTO.Applicant.Email,
                 Occupation = formDTO.Applicant.Occupation,
                 OccupationAddress = formDTO.Applicant.OccupationAddress,
-                Applications = new List<Application>
-        {
-            new Application
+            };
+            var application = new Application
             {
                 Purpose = formDTO.Application.Purpose,
                 Route = formDTO.Application.Route,
@@ -173,19 +169,63 @@ var formDTOs = applicants.Select(a => new FormDTO
                 MoneyType = formDTO.Application.MoneyType,
                 ApplicantNIC = formDTO.Applicant.NIC,
                 ApplicantNationality = formDTO.Applicant.Nationality,
-            }
-        },
-                Passport = passport,
-                Spouse = spouse,
-                Histories = histories
             };
 
-            // Add the applicant to the database
-            _context.Applicants.Add(applicant);
-            await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(CreateApplicant), new { id = applicant.NIC }, formDTO);
+            // Extract form data
+            string forename = formDTO.Applicant.FullName.Split(' ')[0];  // Assuming forename is the first part of FullName
+            string surname = formDTO.Applicant.FullName.Split(' ').Last(); // Assuming surname is the last part of FullName
+            string nationality = formDTO.Applicant.Nationality;
+            int ageMin = 18; // Default value, adjust as needed
+            int ageMax = 120; // Default value, adjust as needed
+            string gender = formDTO.Applicant.Gender == "Female" ? "F" : "M"; // Assuming "F" for Female and "M" for Male
+
+            InterpolDTO interpolObj = new InterpolDTO
+            {
+                forename = forename,
+                name = surname,
+                nationality = nationality,
+                gender = gender
+            };
+
+            if(await interpolService.CheckRedNoticedApplicant(interpolObj) == "found")
+            {
+               application.Status = "Red";
+            }
+            if(await interpolService.CheckYellowNoticedApplicant(interpolObj) == "found")
+            {
+                if(application.Status == "Red")
+                {
+                    application.Status = "Red, Yellow";
+                }
+                else
+                {
+                    application.Status = "Yellow";
+                }
+            }
+            if(await interpolService.CheckUNNoticedApplicant(interpolObj) == "found")
+            {
+                if(application.Status == "")
+                {
+                    application.Status = "UN";
+                }
+                else
+                {
+                    application.Status = application.Status+", UN";
+                }
+            }
+            else if(await interpolService.CheckUNNoticedApplicant(interpolObj) == "not found" && 
+                    await interpolService.CheckYellowNoticedApplicant(interpolObj) == "not found" &&
+                    await interpolService.CheckRedNoticedApplicant(interpolObj) == "not found")
+            {
+                application.Status = "clear";
+            }
+
+            return Ok(application.Status);
+
+
         }
+
 
     }
 }
