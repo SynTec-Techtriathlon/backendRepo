@@ -26,65 +26,17 @@ namespace Back.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FormDTO>>> GetAllApplicants()
+        public async Task<ActionResult<IEnumerable<object>>> GetAllApplicants()
         {
-            var applicants = await _context.Applicants
-                .Include(a => a.Applications)
-                .Include(a => a.Passport)
-                .Include(a => a.Spouse)
-                .Include(a => a.Histories)
-                .ToListAsync();
-var formDTOs = applicants.Select(a => new FormDTO
-{
-    Applicant = new ApplicantDTO
-    {
-        NIC = a.NIC,
-        Nationality = a.Nationality,
-        FullName = a.FullName,
-        Gender = a.Gender,
-        BirthDate = a.BirthDate,
-        BirthPlace = a.BirthPlace,
-        Height = a.Height,
-        Address = a.Address,
-        TelNo = a.TelNo,
-        Email = a.Email,
-        Occupation = a.Occupation,
-        OccupationAddress = a.OccupationAddress
-    },
-    Application = a.Applications?.Select(ap => new ApplicationDTO
-    {
-        Purpose = ap.Purpose,
-        Route = ap.Route,
-        TravelMode = ap.TravelMode,
-        ArrivalDate = ap.ArrivalDate,
-        Period = ap.Period,
-        AmountOfMoney = ap.AmountOfMoney,
-        MoneyType = ap.MoneyType
-    }).FirstOrDefault(),
-    Passport = a.Passport != null ? new PassportDTO
-    {
-        Id = a.Passport.Id,
-        DateOfExpire = a.Passport.DateOfExpire,
-        DateOfIssue = a.Passport.DateOfIssue
-    } : null,
-    Spouse = a.Spouse != null ? new SpouseDTO
-    {
-        SpouseNIC = a.Spouse.SpouseNIC,
-        Name = a.Spouse.Name,
-        Address = a.Spouse.Address
-    } : null,
-    History = a.Histories?.Select(h => new HistoryDTO
-    {
-        VisaType = h.VisaType,
-        VisaIssuedDate = h.VisaIssuedDate,
-        VisaValidityPeriod = h.VisaValidityPeriod,
-        DateLeaving = h.DateLeaving,
-        LastLocation = h.LastLocation
-    }).ToList()
-}).ToList();
 
-
-            return Ok(formDTOs);
+            return await _context.Applications
+             .Include(a => a.Applicant)
+                 .ThenInclude(ap => ap.Passport)
+             .Include(a => a.Applicant)
+                 .ThenInclude(ap => ap.Spouse)
+             .Include(a => a.Applicant)
+                 .ThenInclude(ap => ap.Histories)
+            .ToListAsync();
         }
         // POST: api/Applicant
         [HttpPost]
@@ -205,7 +157,7 @@ var formDTOs = applicants.Select(a => new FormDTO
             }
             if(await interpolService.CheckUNNoticedApplicant(interpolObj) == "found")
             {
-                if(application.Status == "")
+                if(application.Status == "not found")
                 {
                     application.Status = "UN";
                 }
