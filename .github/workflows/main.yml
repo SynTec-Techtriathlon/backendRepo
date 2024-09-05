@@ -12,7 +12,7 @@ env:
   
 jobs:
   publish:
-    runs-on: windows
+    runs-on: windows-latest # Change to Windows machine
 
     steps:
       - name: Checkout code
