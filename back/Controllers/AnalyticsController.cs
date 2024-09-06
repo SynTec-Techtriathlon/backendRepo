@@ -34,7 +34,7 @@ namespace Back.Controllers
         {
             var AppliedApplciation = await _context.Applications
                 .Include(a => a.Applicant)
-                .Where(a=> a.Status == "Red")
+                .Where(a=> a.Status.Contains("Red"))
                 .GroupBy(a => a.CreatedAt)
                 .Select(a => new { Date = a.Key, Count = a.Count() })
                 .ToListAsync();
@@ -48,11 +48,32 @@ namespace Back.Controllers
         {
             var AppliedApplciation = await _context.Applications
                 .Include(a => a.Applicant)
-                .Where(a => a.Status == "Yellow")
+                .Where(a => a.Status.Contains("Yellow"))
                 .GroupBy(a => a.CreatedAt)
                 .Select(a => new { Date = a.Key, Count = a.Count() })
                 .ToListAsync();
             return Ok(AppliedApplciation);
+        }
+        [HttpGet("UNListed Analytics")]
+        public async Task<IActionResult> GetTotalUNListedApplciations()
+        {
+            var AppliedApplciation = await _context.Applications
+                .Include(a => a.Applicant)
+                .Where(a => a.Status.Contains("UN"))
+                .GroupBy(a => a.CreatedAt)
+                .Select(a => new { Date = a.Key, Count = a.Count() })
+                .ToListAsync();
+            return Ok(AppliedApplciation);
+        }
+        [HttpGet("Clear")]
+        public async Task<IActionResult> GetClear()
+        {
+            var clearCount = await _context.Applications
+                                .Include(a => a.Applicant)
+                                .Where(a => a.Status == "Clear")
+                                .CountAsync();
+
+            return Ok(new { Count = clearCount });
         }
 
         [HttpGet("approved")]
@@ -60,7 +81,7 @@ namespace Back.Controllers
         {
             var acceptedCount = await _context.Applications
                                 .Include(a => a.Applicant)
-                                .Where(a => a.Status == "Reject")
+                                .Where(a => a.Status == "Approve")
                                 .CountAsync();
 
 
