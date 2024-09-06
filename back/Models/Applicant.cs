@@ -18,6 +18,7 @@ namespace Back.Models
         public string? Email { get; set; }
         public string? Occupation { get; set; }
         public string? OccupationAddress { get; set; }
+        public required string? MaritalStatus { get; set; }
 
         public virtual Passport Passport { get; set; }
         public virtual Spouse Spouse { get; set; }

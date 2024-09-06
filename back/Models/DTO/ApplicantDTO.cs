@@ -14,5 +14,6 @@
         public string? Email { get; set; }
         public string? Occupation { get; set; }
         public string? OccupationAddress { get; set; }
+        public required string? MaritalStatus { get; set; }
     }
 }
