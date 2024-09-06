@@ -418,3 +418,7 @@ C:\Users\Asus\Source\Repos\backendRepo\back\obj\Debug\net8.0\ref\Back.dll
 C:\Users\Yasiru\source\repos\mainRepo\back\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
 C:\Users\Yasiru\source\repos\mainRepo\back\bin\Debug\net8.0\MailKit.dll
 C:\Users\Yasiru\source\repos\mainRepo\back\bin\Debug\net8.0\MimeKit.dll
+C:\Users\Dhammika Mahendra\source\repos\mainRepo\back\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
+C:\Users\Dhammika Mahendra\source\repos\mainRepo\back\bin\Debug\net8.0\MailKit.dll
+C:\Users\Dhammika Mahendra\source\repos\mainRepo\back\bin\Debug\net8.0\MimeKit.dll
+C:\Users\Dhammika Mahendra\source\repos\mainRepo\back\bin\Debug\net8.0\System.Formats.Asn1.dll
