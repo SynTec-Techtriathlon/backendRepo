@@ -17,8 +17,9 @@ namespace Back.Services
 
         private async Task<string> CheckNoticedApplicant(InterpolDTO value, string noticeType)
         {
+            
             string externalApiUrl = $"https://ws-public.interpol.int/notices/v1/{noticeType}?" +
-                                    $"forename={value.forename}&name={value.name}&nationality={value.nationality}&" +
+                                    $"forename={value.forename.ToUpperInvariant()}&name={value.name.ToUpperInvariant()}&nationality={value.nationality.ToUpperInvariant()}&" +
                                     $"ageMax={120}&ageMin={18}&sexId={value.gender}&arrestWarrantCountryId={value.nationality}&" +
                                     $"page=1&resultPerPage=200";
 
