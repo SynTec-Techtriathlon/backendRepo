@@ -7,5 +7,8 @@
         public required int VisaValidityPeriod { get; set; }
         public required DateTime DateLeaving { get; set; }
         public required string LastLocation { get; set; }
+        public required string DepartureCountry { get; set; }
+        public required DateTime ArrivalDate { get; set; }
+        public required DateTime DepartureDate { get; set; }
     }
 }

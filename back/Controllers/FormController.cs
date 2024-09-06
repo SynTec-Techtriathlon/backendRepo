@@ -132,6 +132,9 @@ namespace Back.Controllers
                 LastLocation = h.LastLocation,
                 ApplicantNIC = formDTO.Applicant.NIC,
                 ApplicantNationality = formDTO.Applicant.Nationality,
+                DepartureCountry = h.DepartureCountry,
+                DepartureDate = h.DepartureDate,
+                ArrivalDate = h.ArrivalDate
             }).ToList();
 
             // Create new Applicant entity
@@ -149,6 +152,7 @@ namespace Back.Controllers
                 Email = formDTO.Applicant.Email,
                 Occupation = formDTO.Applicant.Occupation,
                 OccupationAddress = formDTO.Applicant.OccupationAddress,
+                MaritalStatus = formDTO.Applicant.MaritalStatus,
             };
             var application = new Application
             {
