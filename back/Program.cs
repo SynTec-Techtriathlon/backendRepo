@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactJSDomain", policy =>
     {
-        policy.WithOrigins("http://localhost:3000 , https://interpol.api.bund.dev/")
+        policy.WithOrigins("http://localhost:3000", "https://interpol.api.bund.dev", "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -47,7 +47,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
+app.UseCors("ReactJSDomain"); // Apply the CORS policy here
 app.UseAuthorization();
 
 app.MapControllers();

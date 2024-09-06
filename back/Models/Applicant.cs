@@ -10,6 +10,7 @@ namespace Back.Models
         public required string Nationality { get; set; }
         public required string FullName { get; set; }
         public required string Gender { get; set; }
+        public required string Photo { get; set; }
         public required DateTime BirthDate { get; set; }
         public required string BirthPlace { get; set; }
         public required int Height { get; set; }
@@ -18,6 +19,7 @@ namespace Back.Models
         public string? Email { get; set; }
         public string? Occupation { get; set; }
         public string? OccupationAddress { get; set; }
+        public required string? MaritalStatus { get; set; }
 
         public virtual Passport Passport { get; set; }
         public virtual Spouse Spouse { get; set; }

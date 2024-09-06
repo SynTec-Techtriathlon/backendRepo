@@ -24,68 +24,60 @@ namespace Back.Controllers
             this.httpClient = httpClient;
             this.interpolService = interpolService;
         }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<FormDTO>>> GetAllApplicants()
+        [HttpGet("trial")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllApplicantsTrial()
         {
-            var applicants = await _context.Applicants
-                .Include(a => a.Applications)
-                .Include(a => a.Passport)
-                .Include(a => a.Spouse)
-                .Include(a => a.Histories)
-                .ToListAsync();
-var formDTOs = applicants.Select(a => new FormDTO
-{
-    Applicant = new ApplicantDTO
-    {
-        NIC = a.NIC,
-        Nationality = a.Nationality,
-        FullName = a.FullName,
-        Gender = a.Gender,
-        BirthDate = a.BirthDate,
-        BirthPlace = a.BirthPlace,
-        Height = a.Height,
-        Address = a.Address,
-        TelNo = a.TelNo,
-        Email = a.Email,
-        Occupation = a.Occupation,
-        OccupationAddress = a.OccupationAddress
-    },
-    Application = a.Applications?.Select(ap => new ApplicationDTO
-    {
-        Purpose = ap.Purpose,
-        Route = ap.Route,
-        TravelMode = ap.TravelMode,
-        ArrivalDate = ap.ArrivalDate,
-        Period = ap.Period,
-        AmountOfMoney = ap.AmountOfMoney,
-        MoneyType = ap.MoneyType
-    }).FirstOrDefault(),
-    Passport = a.Passport != null ? new PassportDTO
-    {
-        Id = a.Passport.Id,
-        DateOfExpire = a.Passport.DateOfExpire,
-        DateOfIssue = a.Passport.DateOfIssue
-    } : null,
-    Spouse = a.Spouse != null ? new SpouseDTO
-    {
-        SpouseNIC = a.Spouse.SpouseNIC,
-        Name = a.Spouse.Name,
-        Address = a.Spouse.Address
-    } : null,
-    History = a.Histories?.Select(h => new HistoryDTO
-    {
-        VisaType = h.VisaType,
-        VisaIssuedDate = h.VisaIssuedDate,
-        VisaValidityPeriod = h.VisaValidityPeriod,
-        DateLeaving = h.DateLeaving,
-        LastLocation = h.LastLocation
-    }).ToList()
-}).ToList();
-
-
-            return Ok(formDTOs);
+            return await _context.Applications.ToListAsync();
         }
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Application>>> GetAllApplications()
+        {
+            var applications = await _context.Applications
+        .Include(a => a.Applicant)
+            .ThenInclude(ap => ap.Passport)
+        .Include(a => a.Applicant)
+            .ThenInclude(ap => ap.Spouse)
+        .Include(a => a.Applicant)
+            .ThenInclude(ap => ap.Histories)
+        .ToListAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                WriteIndented = true // Optional for more readable output
+            };
+
+            return new JsonResult(applications, options);
+        }
+        //user get by number
+        [HttpGet("{no}")]
+        public async Task<ActionResult<Application>> GetApplicationById(int no)
+        {
+            // Fetch the application by the No field (ID)
+            var application = await _context.Applications
+                .Include(a => a.Applicant)
+                    .ThenInclude(ap => ap.Passport)
+                .Include(a => a.Applicant)
+                    .ThenInclude(ap => ap.Spouse)
+                .Include(a => a.Applicant)
+                    .ThenInclude(ap => ap.Histories)
+                .FirstOrDefaultAsync(a => a.No == no);
+
+            if (application == null)
+            {
+                return NotFound("Application not found.");
+            }
+
+            // Optional: serialize with custom options if needed
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                WriteIndented = true
+            };
+
+            return new JsonResult(application, options);
+        }
+
         // POST: api/Applicant
         [HttpPost]
         public async Task<IActionResult> CreateApplicant([FromBody] FormDTO formDTO)
@@ -140,12 +132,16 @@ var formDTOs = applicants.Select(a => new FormDTO
                 LastLocation = h.LastLocation,
                 ApplicantNIC = formDTO.Applicant.NIC,
                 ApplicantNationality = formDTO.Applicant.Nationality,
+                DepartureCountry = h.DepartureCountry,
+                DepartureDate = h.DepartureDate,
+                ArrivalDate = h.ArrivalDate
             }).ToList();
 
             // Create new Applicant entity
             var applicant = new Applicant
             {
                 NIC = formDTO.Applicant.NIC,
+                Photo = formDTO.Applicant.Photo,
                 Nationality = formDTO.Applicant.Nationality,
                 FullName = formDTO.Applicant.FullName,
                 Gender = formDTO.Applicant.Gender,
@@ -157,6 +153,7 @@ var formDTOs = applicants.Select(a => new FormDTO
                 Email = formDTO.Applicant.Email,
                 Occupation = formDTO.Applicant.Occupation,
                 OccupationAddress = formDTO.Applicant.OccupationAddress,
+                MaritalStatus = formDTO.Applicant.MaritalStatus,
             };
             var application = new Application
             {
@@ -169,6 +166,7 @@ var formDTOs = applicants.Select(a => new FormDTO
                 MoneyType = formDTO.Application.MoneyType,
                 ApplicantNIC = formDTO.Applicant.NIC,
                 ApplicantNationality = formDTO.Applicant.Nationality,
+                CreatedAt = DateTime.Now,
             };
 
 
@@ -205,7 +203,8 @@ var formDTOs = applicants.Select(a => new FormDTO
             }
             if(await interpolService.CheckUNNoticedApplicant(interpolObj) == "found")
             {
-                if(application.Status == "")
+                if(application.Status == "not found" +
+                    "")
                 {
                     application.Status = "UN";
                 }
@@ -221,9 +220,22 @@ var formDTOs = applicants.Select(a => new FormDTO
                 application.Status = "clear";
             }
 
+
+            _context.Applicants.Add(applicant);
+            _context.Applications.Add(application);
+            if (spouse != null)
+            {
+                _context.Spouses.Add(spouse);
+            }
+            if (histories.Count > 0)
+            {
+                _context.Histories.AddRange(histories);
+            }
+            _context.Passports.Add(passport);
+            await _context.SaveChangesAsync();
+
+
             return Ok(application.Status);
-
-
         }
 
 
