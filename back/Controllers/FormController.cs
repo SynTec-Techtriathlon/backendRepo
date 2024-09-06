@@ -141,6 +141,7 @@ namespace Back.Controllers
             var applicant = new Applicant
             {
                 NIC = formDTO.Applicant.NIC,
+                Photo = formDTO.Applicant.Photo,
                 Nationality = formDTO.Applicant.Nationality,
                 FullName = formDTO.Applicant.FullName,
                 Gender = formDTO.Applicant.Gender,

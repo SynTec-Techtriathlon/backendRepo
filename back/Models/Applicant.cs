@@ -10,6 +10,7 @@ namespace Back.Models
         public required string Nationality { get; set; }
         public required string FullName { get; set; }
         public required string Gender { get; set; }
+        public required string Photo { get; set; }
         public required DateTime BirthDate { get; set; }
         public required string BirthPlace { get; set; }
         public required int Height { get; set; }
