@@ -101,6 +101,7 @@ namespace Back.Controllers
                     DateOfIssue = formDTO.Passport.DateOfIssue,
                     ApplicantNIC = formDTO.Applicant.NIC,
                     ApplicantNationality = formDTO.Applicant.Nationality,
+                    PassportImage = formDTO.Passport.PassportImage
                 };
                 _context.Passports.Add(passport);
             }

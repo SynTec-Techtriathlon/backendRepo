@@ -13,6 +13,7 @@ namespace Back.Models
 
         public required string ApplicantNIC {  get; set; }
         public required string ApplicantNationality { get; set; }
+        public required string PassportImage { get; set; }
 
         [ForeignKey("ApplicantNIC,ApplicantNationality")]
         public virtual Applicant Applicant { get; set; }
