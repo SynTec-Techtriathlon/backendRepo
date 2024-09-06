@@ -62,9 +62,7 @@ namespace Back.Services
         }
 
         public Task<string> CheckRedNoticedApplicant(InterpolDTO value) => CheckNoticedApplicant(value, "red");
-
         public Task<string> CheckYellowNoticedApplicant(InterpolDTO value) => CheckNoticedApplicant(value, "yellow");
-
         public Task<string> CheckUNNoticedApplicant(InterpolDTO value) => CheckNoticedApplicant(value, "un");
     }
 }
