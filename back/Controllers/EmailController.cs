@@ -15,16 +15,16 @@ namespace Back.Controllers
         }
 
         [HttpPost("Approve")]
-        public IActionResult SendApproveEmail(string to, string fname, string lname)
+        public IActionResult SendApproveEmail(string to, string fullName)
         {
-            _emailService.ApproveUserMail(to, fname, lname);
+            _emailService.ApproveUserMail(to, fullName);
             return Ok();
         }
 
         [HttpPost("Reject")]
-        public IActionResult SendRejectEmail(string to, string fname, string lname)
+        public IActionResult SendRejectEmail(string to, string fullName)
         {
-            _emailService.RejectUserMail(to, fname, lname);
+            _emailService.RejectUserMail(to, fullName);
             return Ok();
         }
     }

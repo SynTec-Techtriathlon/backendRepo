@@ -15,7 +15,7 @@ namespace Back.Services
         }
         
 
-        public void RejectUserMail(string to, string fname, string lname)
+        public void RejectUserMail(string to, string fullName)
         {
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(_config.GetSection("EmailConfig:EmailUsername").Value));
@@ -23,7 +23,7 @@ namespace Back.Services
             email.Subject = "VISA Rejected";
             email.Body = new TextPart(TextFormat.Html)
             {
-                Text = $"<html><body><h3>{fname} {lname},</h3><p>We are sorry to inform that your VISA application has been denied.</p></body></html>"
+                Text = $"<html><body><h3>{fullName},</h3><p>We are sorry to inform that your VISA application has been denied.</p></body></html>"
             };
             using var smtp = new SmtpClient();
             smtp.Connect(_config.GetSection("EmailConfig:EmailHost").Value, 587, SecureSocketOptions.StartTls);
@@ -32,7 +32,7 @@ namespace Back.Services
             smtp.Disconnect(true);
         }
 
-        public void ApproveUserMail(string to, string fname, string lname)
+        public void ApproveUserMail(string to, string fullName)
         {
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(_config.GetSection("EmailConfig:EmailUsername").Value));
@@ -40,7 +40,7 @@ namespace Back.Services
             email.Subject = "VISA Approved";
             email.Body = new TextPart(TextFormat.Html)
             {
-                Text = $"<html><body><h3>{fname} {lname},</h3><p>We are happy to inform that your VISA application has been approved.</p></body></html>"
+                Text = $"<html><body><h3>{fullName},</h3><p>We are happy to inform that your VISA application has been approved.</p></body></html>"
             };
             using var smtp = new SmtpClient();
             smtp.Connect(_config.GetSection("EmailConfig:EmailHost").Value, 587, SecureSocketOptions.StartTls);

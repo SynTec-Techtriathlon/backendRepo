@@ -11,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 //dependency injection
 builder.Services.AddScoped<IReportService, ReportService>();
